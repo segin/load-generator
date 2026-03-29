@@ -30,17 +30,27 @@ MAX_MULTIPLIER = 4
 # ================================
 # HELPERS
 # ================================
-def human_bits(n: float) -> str:
+def human_bytes(n: float) -> str:
     if n is None:
         return "   N/A   "
+    units = ["B", "KiB", "MiB", "GiB", "TiB"]
+    i = 0
+    while n >= 1024 and i < len(units) - 1:
+        n /= 1024.0
+        i += 1
+    return f"{n:7.2f} {units[i]:<3}"
+
+def human_bits(n: float) -> str:
+    if n is None:
+        return "    N/A     "
     # Convert bytes to bits
     n *= 8
-    units = ["b", "Kb", "Mb", "Gb", "Tb"]
+    units = ["bps", "Kbps", "Mbps", "Gbps", "Tbps"]
     i = 0
     while n >= 1000 and i < len(units) - 1:
         n /= 1000.0
         i += 1
-    return f"{n:7.2f}{units[i]:>4}"
+    return f"{n:7.2f} {units[i]:<4}"
 
 SPARK = "▁▂▃▄▅▆▇█"
 
@@ -229,13 +239,13 @@ class Dashboard:
         # line 3: bandwidth
         self.add(
             3, 1,
-            f"Bandwidth  Inst:{human_bits(total_inst)}ps  EMA:{human_bits(total_ema)}ps  Total:{human_bits(total_bytes)}bits",
+            f"Bandwidth  Inst:{human_bits(total_inst)}  EMA:{human_bits(total_ema)}  Total:{human_bytes(total_bytes)}",
             curses.color_pair(2) if self.colors else 0
         )
 
         # Worker table header
         row = 5
-        self.add(row, 1, "ID  Act  Inst/bps      EMA/bps       Chunk   Err  Graph")
+        self.add(row, 1, "ID  Act  Inst          EMA           Chunk   Err  Graph")
         row += 1
 
         # fixed column widths
