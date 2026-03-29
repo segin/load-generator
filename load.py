@@ -30,13 +30,15 @@ MAX_MULTIPLIER = 4
 # ================================
 # HELPERS
 # ================================
-def human_bytes(n: float) -> str:
+def human_bits(n: float) -> str:
     if n is None:
         return "   N/A   "
-    units = ["B", "KiB", "MiB", "GiB", "TiB"]
+    # Convert bytes to bits
+    n *= 8
+    units = ["b", "Kb", "Mb", "Gb", "Tb"]
     i = 0
-    while n >= 1024 and i < len(units) - 1:
-        n /= 1024.0
+    while n >= 1000 and i < len(units) - 1:
+        n /= 1000.0
         i += 1
     return f"{n:7.2f}{units[i]:>4}"
 
@@ -227,20 +229,20 @@ class Dashboard:
         # line 3: bandwidth
         self.add(
             3, 1,
-            f"Bandwidth  Inst:{human_bytes(total_inst)}/s  EMA:{human_bytes(total_ema)}/s  Total:{human_bytes(total_bytes)}",
+            f"Bandwidth  Inst:{human_bits(total_inst)}ps  EMA:{human_bits(total_ema)}ps  Total:{human_bits(total_bytes)}bits",
             curses.color_pair(2) if self.colors else 0
         )
 
         # Worker table header
         row = 5
-        self.add(row, 1, "ID  Act  Inst/s        EMA/s         Chunk   Err  Graph")
+        self.add(row, 1, "ID  Act  Inst/bps      EMA/bps       Chunk   Err  Graph")
         row += 1
 
         # fixed column widths
         # ID=3, Act=3, Inst=12, EMA=12, Chunk=8, Err=5
         for i, s in enumerate(self.stats[: self.h - row - 2]):
-            inst = human_bytes(s.instant_bps)
-            ema = human_bytes(s.moving_bps or 0)
+            inst = human_bits(s.instant_bps)
+            ema = human_bits(s.moving_bps or 0)
             chunk = f"{s.chunk_size//1024:5d}K"
             err = f"{s.errors:4d}"
 
